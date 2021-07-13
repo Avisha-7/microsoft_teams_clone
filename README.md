@@ -1,9 +1,7 @@
 # microsoft_clone
-
-A new Flutter project.
+Functional prototype of Microsoft Clone
 
 ## Getting Started
-
 This project is a starting point for a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
@@ -14,3 +12,25 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Spyra
+
+A preview of a few screens enabling user login, user search, peer-to-peer text exchange, initiating and joining a video conversation
+
+![image](https://user-images.githubusercontent.com/66829119/125525151-42347c28-de75-4f46-be98-e7728f58a90f.png)
+
+
+***Features of the app***
+
+- Google-Sign In
+- Loading the chat logs of the user
+- Peer-to-peer text messaging
+- Search for a new user and Initiate a conversation
+- Join or create a video conference call
+- Audio/Video Functionality
+- Meet chat
+- Screen Share
+- Switch to low internet bandwidth
+- Raise hand and many more
+
+
