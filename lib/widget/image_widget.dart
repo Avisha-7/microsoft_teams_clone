@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
+// preview widget for image
 class FullPhoto extends StatelessWidget
 {
   final String url;
-
   FullPhoto({Key? key, required this.url}) : super(key: key);
 
   @override
@@ -44,7 +44,6 @@ class FullPhotoScreen extends StatefulWidget
 class FullPhotoScreenState extends State<FullPhotoScreen>
 {
   final String url;
-
   FullPhotoScreenState({Key? key, required this.url});
 
   @override
