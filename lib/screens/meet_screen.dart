@@ -3,18 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:microsoft_clone/authentication/google_sign_in.dart';
 import 'package:microsoft_clone/meeting/create_meeting.dart';
 import 'package:microsoft_clone/meeting/join_meeting.dart';
 import 'package:microsoft_clone/screens/profile_screen.dart';
 import 'package:microsoft_clone/utils/color_scheme.dart';
 import 'package:microsoft_clone/utils/utils.dart';
 import 'package:microsoft_clone/variables.dart';
-import 'package:provider/provider.dart';
-
-
 import '../main.dart';
-import 'chat_screen.dart';
 
 class MeetScreen extends StatefulWidget {
   final googleSignIn = GoogleSignIn();
@@ -29,7 +24,7 @@ class _MeetScreenState extends State<MeetScreen>
   final GoogleSignIn googleSignIn = GoogleSignIn();
   late TabController tabController;
 
-  buildTab(String name){
+  buildTab(String name) {
     return Container(
       width: 150,
       height: 50,
@@ -38,7 +33,7 @@ class _MeetScreenState extends State<MeetScreen>
         child: Center(
           child: Text(
             name,
-          style: appStyle(15,Colors.white,FontWeight.w700),
+            style: appStyle(15, Colors.white, FontWeight.w700),
           ),
         ),
       ),
@@ -55,62 +50,62 @@ class _MeetScreenState extends State<MeetScreen>
     await FirebaseAuth.instance.signOut();
     await googleSignIn.disconnect();
     await googleSignIn.signOut();
-    Fluttertoast.showToast(msg:"Logout Successful !");
+    Fluttertoast.showToast(msg: "Logout Successful!");
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => MyApp()), (
-        Route<dynamic> route) => false);
+        MaterialPageRoute(builder: (context) => MyApp()),
+        (Route<dynamic> route) => false);
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    getCurrentUser().then((user){
+    getCurrentUser().then((user) {
       setState(() {
         initials = Utils.getInitials(user.displayName!);
         print(initials);
       });
     });
-     tabController = TabController(length: 2, vsync: this);
+    tabController = TabController(length: 2, vsync: this);
   }
 
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF886CE4),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height/7),
+        preferredSize: Size.fromHeight(MediaQuery.of(context).size.height / 7),
         child: AppBar(
-          iconTheme: IconThemeData(color:Colors.black),
+          iconTheme: IconThemeData(color: Colors.black),
           backgroundColor: Colors.white,
           title: Text(
             "  Meet",
-            style: appStyle(20,Colors.black, FontWeight.w700),
+            style: appStyle(20, Colors.black, FontWeight.w700),
           ),
-          actions:<Widget> [
+          actions: <Widget>[
             InkWell(
               // on clicking this, user will be directed to the profile section
               child: UserCircle(initials),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Profile()));
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Profile()));
               },
             ),
             TextButton.icon(
                 onPressed: logoutUser,
-                icon: FaIcon(FontAwesomeIcons.signOutAlt, color: Colors.black,),
+                icon: FaIcon(
+                  FontAwesomeIcons.signOutAlt,
+                  color: Colors.black,
+                ),
                 label: Text(''))
           ],
           bottom: TabBar(
             indicatorColor: colorVariables.separatorColor,
             labelColor: colorVariables.separatorColor,
             controller: tabController,
-            tabs: [
-              buildTab("Join Meeting"),
-              buildTab("Create Meeting")
-            ],
+            tabs: [buildTab("Join Meeting"), buildTab("Create Meeting")],
           ),
         ),
       ),
-      body:TabBarView(
+      body: TabBarView(
         controller: tabController,
         children: [
           JoinMeeting(),
@@ -134,8 +129,7 @@ class UserCircle extends StatelessWidget {
       width: 40,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-            color: colorVariables.blackColor, width: 1),
+        border: Border.all(color: colorVariables.blackColor, width: 1),
         color: colorVariables.separatorColor,
       ),
       child: Stack(
@@ -151,22 +145,8 @@ class UserCircle extends StatelessWidget {
               ),
             ),
           ),
-          // Align(
-          //   alignment: Alignment.bottomRight,
-          //   child: Container(
-          //     margin: EdgeInsets.,
-          //     height: 15,
-          //     width: 12,
-          //     decoration: BoxDecoration(
-          //         shape: BoxShape.circle,
-          //         border: Border.all(
-          //             color: colorVariables.blackColor, width: 2),
-          //         color: colorVariables.onlineDotColor),
-          //   ),
-          // )
         ],
       ),
     );
   }
 }
-
