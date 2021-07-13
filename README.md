@@ -28,9 +28,9 @@ A preview of a few screens enabling user login, user search, peer-to-peer text e
 - Search for a new user and Initiate a conversation
 - Join or create a video conference call
 - Audio/Video Functionality
-- Meet chat
-- Screen Share
-- Switch to low internet bandwidth
-- Raise hand and many more
+   - Meet chat
+   - Screen Share
+   - Switch to low internet bandwidth
+   - Raise hand and many more
 
 
