@@ -2,26 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:intl/intl.dart';
-import 'package:microsoft_clone/authentication/google_sign_in.dart';
-import 'package:microsoft_clone/firebase/helper_functions.dart';
-import 'package:microsoft_clone/models/user.dart';
-import 'package:microsoft_clone/screens/contact_screen.dart';
 import 'package:microsoft_clone/screens/profile_screen.dart';
 import 'package:microsoft_clone/screens/search_screen.dart';
-import 'package:microsoft_clone/services/constants.dart';
 import 'package:microsoft_clone/services/database.dart';
 import 'package:microsoft_clone/utils/color_scheme.dart';
 import 'package:microsoft_clone/utils/utils.dart';
 import 'package:microsoft_clone/variables.dart';
-import 'package:microsoft_clone/widget/custom_tile.dart';
-import 'package:provider/provider.dart';
-import 'package:microsoft_clone/widget/progress_widget';
-
 import '../main.dart';
 import 'chat_room.dart';
 
@@ -33,10 +22,11 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   String currentUserId="";
   String initials="";
-  final Duration initialDelay = Duration(seconds: 1);
+  String currentUsername="";
   final GoogleSignIn googleSignIn = GoogleSignIn();
   DatabaseMethods databaseMethods = DatabaseMethods();
   late QuerySnapshot searchSnapshot;
+  late QuerySnapshot chatSnapshot;
 
   TextEditingController searchTextEditingController = TextEditingController();
   late Future<QuerySnapshot> futureSearchResults;
@@ -51,37 +41,29 @@ class _ChatScreenState extends State<ChatScreen> {
         Route<dynamic> route) => false);
   }
 
-  Future<User> _fetchCurrentUser() async{
-    final firebaseUser = await FirebaseAuth.instance.currentUser!;
-    await FirebaseFirestore.instance
-        .collection('users').doc(firebaseUser.uid).get()
-        .then((value){
-          currentUserId = value['uid'];
-          print(currentUserId);
-    });
-    return firebaseUser;
-  }
-
   Future<User> getCurrentUser() async {
     User currentUser;
     currentUser = await FirebaseAuth.instance.currentUser!;
     return currentUser;
   }
 
-  getUserInfo() async {
-    Constants.localUserName = (await HelperFunctions.getUserNameSharedPreference())!;
-    Constants.localUserName = (await HelperFunctions.getUserNameSharedPreference())!;
-    Constants.localUserId = (await HelperFunctions.getUserIdSharedPreference())!;
+  Widget chatRoomsList() {
+    return chatSnapshot.docs.length!=0 ? ListView.builder(
+      itemCount: chatSnapshot.docs.length,
+        shrinkWrap: true,
+        itemBuilder: (context, index){
+      return ChatTile(
+        photourl: chatSnapshot.docs[index]['senderPhotoUrl'],
+        userName: chatSnapshot.docs[index]['senderName'],
+        userId: chatSnapshot.docs[index]['senderId'],
+        userEmail: chatSnapshot.docs[index]['receiverEmail'],
+        chatId: chatSnapshot.docs[index]["chatId"],
+        lastMsg: chatSnapshot.docs[index]["lastMessage"],
+      );
+    }):Container(
+      child: Center(child: Text(" No Conversations!",style: appStyle(25,Colors.white),)),
+    );
   }
-
-  // controlSearching(String userName)
-  // {
-  //   Future<QuerySnapshot> foundUsers = FirebaseFirestore.instance.collection("users")
-  //       .where("username", isGreaterThanOrEqualTo: userName).get();
-  //   setState(() {
-  //     futureSearchResults = foundUsers;
-  //   });
-  // }
 
   initiateSearch() {
     databaseMethods.queryData(searchTextEditingController.text).then((value){
@@ -92,62 +74,23 @@ class _ChatScreenState extends State<ChatScreen> {
   }
   @override
   void initState(){
-    getUserInfo();
-    super.initState();
     getCurrentUser().then((user){
       setState(() {
         currentUserId = user.uid;
+        currentUsername = user.displayName!;
         initials = Utils.getInitials(user.displayName!);
         print(initials);
       });
+      databaseMethods.queryConversation(currentUserId).then((value){
+        print("Printing chatSnapshot value");
+        print(value);
+        setState(() {
+          chatSnapshot = value;
+        });
+      });
     });
+    super.initState();
   }
-
-  // displayUserFoundScreen()
-  // {
-  //   return FutureBuilder(
-  //     future: futureSearchResults,
-  //     builder: (context, dataSnapshot)
-  //     {
-  //       if(!dataSnapshot.hasData)
-  //         return circularProgress();
-  //
-  //       List<UserResult> searchUserResult = [];
-  //       dataSnapshot.data!.document.forEach((document)
-  //       {
-  //         UserModel eachUser = UserModel.fromDocument(document);
-  //         UserResult userResult = UserResult(eachUser);
-  //
-  //         if(currentUserId  != document["id"])
-  //         {
-  //           searchUserResult.add(userResult);
-  //         }
-  //       });
-  //       return ListView(children: searchUserResult);
-  //     },
-  //   );
-  // }
-  //
-  // displayNoSearchResultScreen()
-  // {
-  //   final Orientation orientation = MediaQuery.of(context).orientation;
-  //
-  //   return Container(
-  //     child: Center(
-  //       child: ListView(
-  //         shrinkWrap: true,
-  //         children: <Widget>[
-  //           Icon(Icons.group, color: Colors.lightBlueAccent, size: 200.0,),
-  //           Text(
-  //             "Search Users",
-  //             textAlign: TextAlign.center,
-  //             style: TextStyle(color: Colors.lightBlueAccent, fontSize: 50.0, fontWeight: FontWeight.w500,),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +98,6 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: colorVariables.homePageTheme,
       appBar: AppBar(
         iconTheme: IconThemeData(color:Colors.black),
-        // centerTitle: true,
         title: Text(" Chats",style: appStyle(20,Colors.black)) ,
         backgroundColor: Colors.white,
         actions: <Widget>[
@@ -163,41 +105,12 @@ class _ChatScreenState extends State<ChatScreen> {
               tooltip: "Search Users",
               onPressed: (){
                 initiateSearch();
-                // Navigator.pushNamed(context,"/search_screen");
                 Navigator.push(context,MaterialPageRoute(
                   builder: (context)=>SearchScreen()
                 ));
               },
               icon: FaIcon(FontAwesomeIcons.search,color: Colors.black,size: 20,)
           ),
-          // GestureDetector(
-          //   onTap:(){
-          //     Navigator.push(context, MaterialPageRoute(
-          //         builder: (context) => Profile()));
-          //     },
-          //   child:Center(
-          //     child: Container(
-          //
-          //     ),
-          //   ),
-          //
-          // ),
-          // InkWell(
-          //   onTap: () => generateCode(),
-          //   child: Container(
-          //     width: MediaQuery.of(context).size.width/2,
-          //     height: 50,
-          //     decoration: BoxDecoration(
-          //         gradient: LinearGradient(colors:GradientColors.cherry)
-          //     ),
-          //     child: Center(
-          //       child: Text(
-          //         "Generate Code",
-          //         style: appStyle(18,Colors.white),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           InkWell(
             // on clicking this, user will be directed to the profile section
             child: UserCircle(initials),
@@ -206,15 +119,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           builder: (context) => Profile()));
             },
           ),
-          // UserCircle(initials),
           IconButton(
               onPressed: logoutUser,
-              //     () {
-              //   final provider =
-              //   Provider.of<GoogleSignInProvider>(context, listen: false);
-              //   provider.signOut();
-              //   // FirebaseAuth.instance.signOut();
-              // },
             tooltip: "Logout",
             icon: FaIcon(FontAwesomeIcons.signOutAlt, color: Colors.black,),
           ),
@@ -229,106 +135,63 @@ class _ChatScreenState extends State<ChatScreen> {
         },
         tooltip: "Start New Chat",
         child:FaIcon(FontAwesomeIcons.userPlus,color: Colors.yellowAccent,size: 25,),
-        // NewChatButton(),
       ),
-      body: Container(),
-      // ChatListContainer(currentUserId),
-      // Container(
-      //   color: Colors.white54,
-      //   padding: EdgeInsets.symmetric(horizontal: 24,vertical: 10),
-      //   margin: new EdgeInsets.only(bottom: 4.0),
-      //   child:TextFormField(
-      //     style: appStyle(20,Colors.black,FontWeight.w500),
-      //     controller: searchTextEditingController,
-      //     decoration: InputDecoration(
-      //       hintText: "Search Username",
-      //       hintStyle: appStyle(18,Colors.black54,FontWeight.w500),
-      //       enabledBorder: UnderlineInputBorder(
-      //         borderSide: BorderSide(color:Colors.grey),
-      //       ),
-      //       focusedBorder: UnderlineInputBorder(
-      //         borderSide: BorderSide(color: Colors.white),
-      //       ),
-      //       // filled: true,
-      //       // prefixIcon: FaIcon(FontAwesomeIcons.userFriends,color: Colors.grey,size: 30,),
-      //       suffixIcon: IconButton(
-      //         icon: FaIcon(FontAwesomeIcons.times,color: Colors.grey,),
-      //         onPressed: () {
-      //           searchTextEditingController.clear();
-      //         },
-      //       ),
-      //     ),
-      //     // onFieldSubmitted: initiateSearch(),
-      //   ),
-      //   // Text("Chats",style: appStyle(20,Colors.black)),
-      // ),
-      // ChatListContainer(currentUserId),
+      body: Container(
+        margin: EdgeInsets.fromLTRB(3, 30, 10, 3),
+        child: chatRoomsList(),
+      ),
     );
   }
 
 }
 
-class ChatListContainer extends StatefulWidget {
-  final String currentUserId;
-  ChatListContainer(this.currentUserId);
+class ChatTile extends StatelessWidget {
+  final String userName;
+  final String chatId;
+  final String userEmail;
+  final String photourl;
+  final String userId;
+  final String lastMsg;
+  ChatTile({required this.userName,required this.chatId, required this.userEmail, required this.photourl, required this.userId,required this.lastMsg});
 
-  @override
-  _ChatListContainerState createState() => _ChatListContainerState();
-}
-
-class _ChatListContainerState extends State<ChatListContainer> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: ListView.builder(
-        padding: EdgeInsets.all(10),
-        itemCount: 2,
-        itemBuilder: (context, index) {
-          return CustomTile(
-            // icon: FaIcon(FontAwesomeIcons.search),
-            mini: false,
-            onTap: () {},
-            title: Text(
-              "The CS Guy",
-              style: TextStyle(
-                  color: Colors.white, fontFamily: "Arial", fontSize: 19),
-            ),
-            subtitle: Text(
-              "Hello",
-              style: TextStyle(
-                color: colorVariables.greyColor,
-                fontSize: 14,
+      padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.height/40,vertical: 3),
+      child: Container(
+        child: Column(
+          children:<Widget> [
+            GestureDetector(
+              onTap: (){
+                  // pushes the user to the chatRoom Screen and finally pushReplacement is done
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context)=>Chat(
+                        receiverId:userId,
+                        receiverEmail: userEmail,
+                        receiverName:userName,
+                        receiverAvatar: photourl,
+                      )
+                  ));
+              },
+              child: ListTile(
+                hoverColor: Colors.white54,
+                selectedTileColor: Colors.white54,
+                tileColor: Colors.white10,
+                leading: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  backgroundImage: CachedNetworkImageProvider(photourl),
+                ),
+                title:Text(userName,style: appStyle(17,Colors.black,FontWeight.w500)),
+                subtitle: Text(lastMsg,style: appStyle(14,Colors.black54,FontWeight.w500,FontStyle.italic)),
               ),
             ),
-            leading: Container(
-              constraints: BoxConstraints(maxHeight: 60, maxWidth: 60),
-              child: Stack(
-                children: <Widget>[
-                  CircleAvatar(
-                    maxRadius: 30,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: NetworkImage("https://yt3.ggpht.com/a/AGF-l7_zT8BuWwHTymaQaBptCy7WrsOD72gYGp-puw=s900-c-k-c0xffffffff-no-rj-mo"),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      height: 13,
-                      width: 13,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colorVariables.onlineDotColor,
-                          border: Border.all(
-                              color: colorVariables.blackColor,
-                              width: 2
-                          )
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ), onLongPress: () {},
-          );
-        },
+          ],
+        ),
+        decoration: BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+                    width: 2,
+                    color:Colors.black12))),
       ),
     );
   }
@@ -364,19 +227,6 @@ class UserCircle extends StatelessWidget {
               ),
             ),
           ),
-          // Align(
-          //   alignment: Alignment.bottomRight,
-          //   child: Container(
-          //     margin: EdgeInsets.,
-          //     height: 15,
-          //     width: 12,
-          //     decoration: BoxDecoration(
-          //         shape: BoxShape.circle,
-          //         border: Border.all(
-          //             color: colorVariables.blackColor, width: 2),
-          //         color: colorVariables.onlineDotColor),
-          //   ),
-          // )
         ],
       ),
     );
@@ -392,11 +242,6 @@ class NewChatButton extends StatelessWidget {
           // color: Colors.white30,
           borderRadius: BorderRadius.circular(50)),
       child: FaIcon(FontAwesomeIcons.userPlus,color: Colors.yellowAccent,size: 32,),
-      // Icon(
-      //   Icons.edit,
-      //   color: Colors.white,
-      //   size: 25,
-      // ),
       padding: EdgeInsets.all(10),
     );
   }
