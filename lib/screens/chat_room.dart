@@ -6,13 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:microsoft_clone/services/database.dart';
 import 'package:microsoft_clone/utils/color_scheme.dart';
 import 'package:microsoft_clone/variables.dart';
 import 'package:microsoft_clone/widget/image_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:microsoft_clone/widget/progress_widget';
-
-import 'chat_screen.dart';
 
 class Chat extends StatelessWidget {
   final String receiverId;
@@ -31,7 +30,6 @@ class Chat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: colorVariables.separatorColor,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(70) ,
         child: AppBar(
@@ -40,7 +38,6 @@ class Chat extends StatelessWidget {
           actions: <Widget>[
             Padding(
               padding: EdgeInsets.fromLTRB(10, 8, 15, 5),
-              // EdgeInsets.all(10.0),
               child: CircleAvatar(
                 backgroundColor: Colors.black,
                 backgroundImage: CachedNetworkImageProvider(receiverAvatar),
@@ -64,47 +61,40 @@ class Chat extends StatelessWidget {
       ),
       body: Container(
         color:Color(0xffC0C0C0),
-        // Color(0xff757575),
-
-        // colorVariables.userCircleBackground ,
-          // decoration: BoxDecoration(
-          //   gradient: LinearGradient(
-          //     begin: Alignment.topRight,
-          //     end: Alignment.bottomLeft,
-          //     // colors: [colorVariables.greyColor,colorVariables.separatorColor],Color(0xFF886CE4)
-          //     colors: [colorVariables.greyColor,colorVariables.blackColor],
-          //   ),
-          // ),
-          child: ChatRoom(receiverId: receiverId, receiverAvatar: receiverAvatar,receiverName:receiverName )),
+          child: ChatRoom(receiverId: receiverId,receiverEmail: receiverEmail, receiverAvatar: receiverAvatar,receiverName:receiverName )),
     );
   }
 }
 
-
 class ChatRoom extends StatefulWidget {
   final String receiverId;
+  final String receiverEmail;
   final String receiverAvatar;
   final String receiverName;
 
   ChatRoom({
     Key? key,
     required this.receiverId,
+    required this.receiverEmail,
     required this.receiverAvatar,
     required this.receiverName,
   }):super(key:key);
 
   @override
-  _ChatRoomState createState() => _ChatRoomState(receiverName: receiverName, receiverAvatar:receiverAvatar, receiverId: receiverId);
+  _ChatRoomState createState() => _ChatRoomState(receiverName: receiverName,receiverEmail: receiverEmail, receiverAvatar:receiverAvatar, receiverId: receiverId);
 }
 
 class _ChatRoomState extends State<ChatRoom> {
   final String receiverId;
+  final String receiverEmail;
   final String receiverAvatar;
   final String receiverName;
+
 
   _ChatRoomState({
     Key? key,
     required this.receiverId,
+    required this.receiverEmail,
     required this.receiverAvatar,
     required this.receiverName,
   });
@@ -123,19 +113,19 @@ class _ChatRoomState extends State<ChatRoom> {
   late String chatId;
   late SharedPreferences preferences;
   late String id;
+  late String username;
+  late String photo;
   late var listMessage;
+  DatabaseMethods databaseMethods = DatabaseMethods();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     focusNode.addListener(onFocusChange);
-
-    isDisplaySticker = false;
+    // isDisplaySticker = false;
     isLoading = false;
-
     chatId = "";
-
     readLocal();
   }
 
@@ -143,7 +133,8 @@ class _ChatRoomState extends State<ChatRoom> {
   {
     preferences = await SharedPreferences.getInstance();
     id = preferences.getString("id") ?? "";
-
+    username = preferences.getString("username")??"";
+    photo = preferences.getString("photoUrl")??"";
     if(id.hashCode <= receiverId.hashCode)
       chatId = '$id-$receiverId';
     else
@@ -151,10 +142,46 @@ class _ChatRoomState extends State<ChatRoom> {
 
     FirebaseFirestore.instance.collection("users").doc(id).update({'chattingWith': receiverId});
 
+    List<String> usersList = [receiverId,id];
+      Map<String,dynamic>chatRoomMap = {
+        "users" : usersList,
+        "chatId": chatId,
+        "receiverId":receiverId,
+        "senderId":id,
+        "receiverEmail":receiverEmail,
+        "senderName":username,
+        "receiverName":receiverName,
+        "receiverPhotoUrl": receiverAvatar,
+        "senderPhotoUrl":photo,
+        "lastMessage":"",
+        "lastTime":"",
+      };
+      databaseMethods.createChatRoom(chatId, chatRoomMap);
+
     setState(() {
 
     });
   }
+
+  void onCreateRoom()
+  {
+    var chatRef = FirebaseFirestore.instance.collection("messages").doc(chatId);
+
+    FirebaseFirestore.instance.runTransaction((transaction) async
+    {
+      await transaction.set(chatRef,
+        {
+          "idFrom": id,
+          "senderName":username,
+          "idTo": receiverId,
+          "receiverName":receiverName,
+          "users":[id, receiverId],
+          "createdOn": DateTime.now().toUtc(),
+        },);
+    });
+    listScrollController.animateTo(0.0, duration: Duration(microseconds: 300), curve: Curves.easeOut);
+  }
+
 
   onFocusChange()
   {
@@ -207,10 +234,7 @@ class _ChatRoomState extends State<ChatRoom> {
       });
     }
     else
-    {
       Navigator.pop(context);
-    }
-
     return Future.value(false);
   }
 
@@ -220,8 +244,9 @@ class _ChatRoomState extends State<ChatRoom> {
       (
       child: chatId == ""
           ? Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(colorVariables.backgroundTheme),
+        child: Text(
+          "No Conversations yet!",
+          style: appStyle(20,colorVariables.backgroundTheme,FontWeight.w500),
         ),
       )
           : StreamBuilder<QuerySnapshot>(
@@ -504,8 +529,6 @@ class _ChatRoomState extends State<ChatRoom> {
               ),
               color: Colors.white,
             ),
-
-            //Text Field
             Flexible(
               child: Container(
                 child: TextField(
@@ -514,10 +537,6 @@ class _ChatRoomState extends State<ChatRoom> {
                   decoration: InputDecoration.collapsed(
                     hintText: "Type a message",
                     hintStyle: appStyle(16,Colors.grey),
-                    // enabled: true,
-                    // border: UnderlineInputBorder(
-                    //   borderSide: BorderSide(color:Colors.grey),),
-                    // focusColor:Colors.black,
                   ),
                   focusNode: focusNode,
                 ),
@@ -558,7 +577,6 @@ class _ChatRoomState extends State<ChatRoom> {
   {
     //type=0 its text msg
     //type=1 its imageFile
-    //type=2 its sticker-emoji-gifs
     if(contentMsg != "")
     {
       textEditingController.clear();
@@ -568,22 +586,26 @@ class _ChatRoomState extends State<ChatRoom> {
           .doc(chatId)
           .collection(chatId)
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
-
       FirebaseFirestore.instance.runTransaction((transaction) async
       {
         await transaction.set(docRef,
           {
             "idFrom": id,
+            "senderName":username,
             "idTo": receiverId,
+            "receiverName":receiverName,
+            "users":[id, receiverId],
             "timestamp": DateTime.now().millisecondsSinceEpoch.toString(),
             "content": contentMsg,
             "type": type,
           },);
+        FirebaseFirestore.instance.collection("messages").doc(chatId).update({'lastMessage': contentMsg});
+        FirebaseFirestore.instance.collection("messages").doc(chatId).update({'lastTime': DateTime.now().toUtc()});
       });
       listScrollController.animateTo(0.0, duration: Duration(microseconds: 300), curve: Curves.easeOut);
     }
     else
-      Fluttertoast.showToast(msg: "Empty Message. Can not be send.");
+      Fluttertoast.showToast(msg: "Empty Message. Can not be sent!");
   }
 
   Future getImageFromCamera()async{
@@ -603,7 +625,6 @@ class _ChatRoomState extends State<ChatRoom> {
       isLoading = false;
       fileImage = File(imageFile.path);
     });
-    // classify(File(imageFile.path));
     uploadImageFile();
   }
 
@@ -617,7 +638,6 @@ class _ChatRoomState extends State<ChatRoom> {
 
     UploadTask storageUploadTask = storageReference.putFile(fileImage);
     TaskSnapshot storageTaskSnapshot = (await storageUploadTask.whenComplete) as TaskSnapshot;
-    // ((){
       // when upload done, we will get download url
       storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl)
       {
@@ -635,7 +655,7 @@ class _ChatRoomState extends State<ChatRoom> {
         });
         Fluttertoast.showToast(msg: "Error: " + error);
       });
-    // });
   }
 
 }
+
