@@ -1,4 +1,3 @@
-import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,17 +89,6 @@ class _CreateMeetingState extends State<CreateMeeting> {
                     ],
                   ),
                   SizedBox(width: 20,),
-                  // Text(
-                  //   "Meeting Code: ",
-                  //   style: appStyle(25),
-                  // ),
-                  // Text(
-                  //     meetCode,
-                  //     style: appStyle(
-                  //         25,
-                  //         Colors.white,
-                  //         FontWeight.w500),
-                  // )
                 ],
               ),
             ),
@@ -110,20 +98,16 @@ class _CreateMeetingState extends State<CreateMeeting> {
                 if(meetCode==""){
                   Fluttertoast.showToast(msg: "Generate a meeting code!");
                 }
-                else Share.share(meetCode);
+                else Share.share("https://meet.jit.si/"+meetCode);
               },
               child: Container(
                 width: MediaQuery.of(context).size.width/1.5,
                 height: 64,
                 decoration: BoxDecoration(
                   color: Colors.yellowAccent
-                    // gradient: LinearGradient(colors:GradientColors.white)
                 ),
                 child: Center(
                   child:
-                  // Column(
-                    // mainAxisAlignment: MainAxisAlignment.center,
-                    // children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
