@@ -3,10 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class DatabaseMethods{
-  // getUserByUsername(String username){
-  //   FirebaseFirestore.instance.collection('users').doc(username).get();
-  // }
-
+  
   Future getUserData(String collection) async {
     final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     QuerySnapshot snapshot = await firebaseFirestore.collection(collection).get();
@@ -29,7 +26,4 @@ class DatabaseMethods{
       print(e);
     });
   }
-  // uploadUserInfo(userMap){
-  //   FirebaseFirestore.instance.collection("users").add(userMap);
-  // }
 }
