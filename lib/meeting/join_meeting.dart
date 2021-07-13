@@ -1,11 +1,8 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
-import 'package:jitsi_meet/feature_flag/feature_flag.dart';
 import 'package:jitsi_meet/jitsi_meet.dart';
 import 'package:microsoft_clone/utils/color_scheme.dart';
 import 'package:microsoft_clone/variables.dart';
@@ -54,13 +51,6 @@ class _JoinMeetingState extends State<JoinMeeting> {
         // Disable PIP on iOS as it looks weird
         featureFlags[FeatureFlagEnum.PIP_ENABLED] = false;
       }
-      
-      // FeatureFlag featureFlag = FeatureFlag();
-      // featureFlag.welcomePageEnabled = false;
-      // if(Platform.isAndroid)
-      //   featureFlag.callIntegrationEnabled = false; // doesn't work well in Android
-      // else if(Platform.isIOS)
-      //   featureFlag.pipEnabled = false; // there exists some PIP problems in iOS
 
       var userOptions = JitsiMeetingOptions(room: roomController.text)
       ..userDisplayName = nameController.text == ''
