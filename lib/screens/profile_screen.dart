@@ -3,19 +3,14 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
-import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:microsoft_clone/authentication/google_sign_in.dart';
 import 'package:microsoft_clone/variables.dart';
 import 'package:microsoft_clone/utils/color_scheme.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -51,7 +46,6 @@ class Profile extends StatelessWidget {
           ],
       ),
       body: ProfileScreen(),
-
     );
   }
 }
@@ -89,15 +83,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         MaterialPageRoute(builder: (context) => MyApp()), (
         Route<dynamic> route) => false);
   }
-
-  // Future<User> getCurrentUser() async {
-  //   User currentUser;
-  //   currentUser = await FirebaseAuth.instance.currentUser!;
-  //   print(currentUser.displayName);
-  //   username=currentUser.displayName!;
-  //   print(username);
-  //   return currentUser;
-  // }
 
   void readDataFromLocal() async
   {
@@ -147,8 +132,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           photoUrl=value;
           FirebaseFirestore.instance.collection("users").doc(id).update({
             "photoUrl":photoUrl,
-            // "aboutMe":aboutMe,
-            // "username":username,
           }).then((data) async {
             await preferences.setString("photoUrl", photoUrl);
             setState(() {
@@ -177,12 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     FirebaseFirestore.instance.collection("users").doc(id).update({
-      // "photoUrl": photoUrl,
       "aboutMe": aboutMe,
       "username" : username,
     }).then((data) async
     {
-      // await preferences.setString("photoUrl", photoUrl);
       await preferences.setString("aboutMe", aboutMe);
       await preferences.setString("username", username);
 
@@ -198,7 +179,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // TODO: implement initState
     super.initState();
     readDataFromLocal();
-    // getCurrentUser();
   }
 
 
@@ -222,7 +202,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? Material(
                           //display already existing - old image file
                           child: CachedNetworkImage(
-                            // color: Colors.grey,
                             placeholder: (context, url) => Container(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.0,
@@ -269,24 +248,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-
-                      // IconButton(
-                      //   icon: Icon(
-                      //     Icons.camera_alt, size: 10.0, color: Colors.white54.withOpacity(0.3),
-                      //   ),
-                      //   onPressed: findImage,
-                      //   padding: EdgeInsets.all(0.0),
-                      //   splashColor: Colors.transparent,
-                      //   highlightColor: Colors.grey,
-                      //   iconSize: 200.0,
-                      // ),
                     ],
                   ),
                 ),
                 width: double.infinity,
                 margin: EdgeInsets.all(60.0),
               ),
-
               //Input Fields
               Column(
                 children: <Widget>[
@@ -297,7 +264,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text(
                       "Username : ",
                       style: appStyle(18,Colors.white70,FontWeight.w600),
-                      // TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, color: Colors.lightBlueAccent),
                     ),
                     margin: EdgeInsets.only(left: 15.0, bottom: 5.0, top: 40.0),
                   ),
@@ -318,7 +284,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onChanged: (value){
                           username = value;
                         },
-
                         focusNode: userNameFocusNode,
                       ),
                     ),
@@ -375,22 +340,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 margin: EdgeInsets.only(top: 50.0, bottom: 1.0),
               ),
               SizedBox(height: 35,),
-              // Logout Button
-              // Padding(
-              //   padding: EdgeInsets.only(left: 50.0, right: 50.0),
-              //   child: ElevatedButton(
-              //     onPressed: logoutUser,
-              //     child: Text(
-              //       "Logout",
-              //       style: appStyle(19),
-              //     ),
-              //     style: ElevatedButton.styleFrom(
-              //       primary: Colors.white,
-              //       onPrimary: Color(0xFF7B83EB),
-              //       minimumSize: Size(MediaQuery.of(context).size.width/2,MediaQuery.of(context).size.height/15),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
           padding: EdgeInsets.only(left: 15.0, right: 15.0),
@@ -435,166 +384,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-
-//
-// class ProfileScreen extends StatefulWidget {
-//
-//   @override
-//   _ProfileScreenState createState() => _ProfileScreenState();
-// }
-//
-// class _ProfileScreenState extends State<ProfileScreen> {
-//   String username = '';
-//   bool infoExists = false;
-//   TextEditingController usernameController = TextEditingController();
-//
-//   // void initState() {
-//   //   // final userRef = Firestore.instance.collection('users');
-//   //   // super.initState();
-//   //   super.initState();
-//   //   getUserInfo();
-//   // }
-//   //
-//   // getUserInfo() async {
-//   //   // getting the user info from Firebase
-//   //   DocumentSnapshot userInfo = await userCollection.doc(FirebaseAuth.instance.currentUser!.uid).get();
-//   //
-//   //   // rendering the data
-//   //   setState(() {
-//   //     username = userInfo.data()!['username'];
-//   //     infoExists = true;
-//   //   });
-//   // }
-//
-//   editProfile()async{
-//     // updating the data in Firebase Collections
-//     userCollection.doc(FirebaseAuth.instance.currentUser!.uid).update({
-//       'username':usernameController.text
-//     });
-//
-//     // rendering the data
-//     setState(() {
-//       username = usernameController.text;
-//     });
-//
-//     // pushing back to the previous screen
-//     Navigator.pop(context);
-//   }
-//
-//   editProfileDialog() async{
-//     return showDialog(
-//         context: context,
-//         builder: (context){
-//           return Dialog(
-//             child:Container(
-//               height: 200,
-//               child: Column(
-//                 children: [
-//                   SizedBox(height: 30,),
-//                   Container(
-//                     margin: EdgeInsets.only(left:30,right:30),
-//                     child: TextField(
-//                       style: appStyle(18,Colors.black),
-//                       controller: usernameController,
-//                       decoration: InputDecoration(
-//                         labelText: "Update Username",
-//                         labelStyle: appStyle(16, Colors.grey)
-//                       ),
-//                     ),
-//                   ),
-//                   SizedBox(height: 40,),
-//                   InkWell(
-//                     onTap: ()=>editProfile(),
-//                     child: Container(
-//                       width:MediaQuery.of(context).size.width/2,
-//                       height:40,
-//                       decoration: BoxDecoration(
-//                           gradient: LinearGradient(colors:GradientColors.cherry)
-//                       ),
-//                       child:Center(
-//                         child:Text(
-//                             "Update",
-//                             style: appStyle(17,Colors.white)
-//                         ),
-//                       ),
-//                     ),
-//                   )
-//                 ],
-//               ),
-//             ),
-//           );
-//         });
-//
-//   }
-//
-//
-//   @override
-//
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.grey[250],
-//       body:
-//       // infoExists==false? Center(
-//       //   child:CircularProgressIndicator(),
-//       // ):
-//       Stack(
-//         children:[
-//           ClipPath(
-//             clipper:OvalBottomBorderClipper(),
-//             child:Container(
-//               width: double.infinity,
-//               height: MediaQuery.of(context).size.height/2.5,
-//               decoration:BoxDecoration(
-//                 gradient: LinearGradient(colors: GradientColors.facebookMessenger)
-//               ),
-//             ),
-//           ),
-//           Container(
-//             margin: EdgeInsets.only(
-//               left: MediaQuery.of(context).size.width/2-64,
-//               top:MediaQuery.of(context).size.height/3.1
-//             ),
-//             child:CircleAvatar(
-//               radius:64,
-//               backgroundImage: NetworkImage(
-//                   'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png'
-//               ),
-//             ),
-//           ),
-//           Center(
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children:[
-//                 SizedBox(height:300),
-//                 // getting user data from Firebase
-//                 Text(
-//                   // username,
-//                   "Avisha",
-//                   style:appStyle(40,Colors.black),
-//                   textAlign:TextAlign.center,
-//                 ),
-//                 SizedBox(height:30),
-//                 InkWell(
-//                   onTap: ()=>editProfileDialog(),
-//                   child: Container(
-//                   width:MediaQuery.of(context).size.width/2,
-//                     height:40,
-//                     decoration: BoxDecoration(
-//                       gradient: LinearGradient(colors:GradientColors.cherry)
-//                     ),
-//                     child:Center(
-//                       child:Text(
-//                           "Edit Profile",
-//                           style: appStyle(17,Colors.white)
-//                       ),
-//                     ),
-//                   ),
-//                 )
-//               ],
-//             ),
-//           )
-//         ],
-//       ),
-//     );
-//   }
-// }
