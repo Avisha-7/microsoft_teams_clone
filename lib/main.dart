@@ -25,7 +25,6 @@ class MyApp extends StatelessWidget {
     child: MaterialApp(
         home:NavigationPage(),
         debugShowCheckedModeBanner: false,
-      // themeMode: ThemeMode.system,
       initialRoute: '/', //marking this as the initial screen
       routes: {
           '/search_screen':(context) =>SearchScreen(),
@@ -44,6 +43,7 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   void initState(){
     super.initState();
+    
     // gets triggered as it listens changes in the status of the user (logged in or not)
     FirebaseAuth.instance.authStateChanges().listen((user){
       if(user!=null){
@@ -57,6 +57,7 @@ class _NavigationPageState extends State<NavigationPage> {
       }
     });
   }
+  
   Widget build(BuildContext context) {
     return Scaffold(
       // if the user is not signed in, will go to IntroAuthScreen
