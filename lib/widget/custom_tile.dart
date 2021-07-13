@@ -4,9 +4,7 @@ import 'package:microsoft_clone/utils/color_scheme.dart';
 class CustomTile extends StatelessWidget {
   final Widget leading;
   final Widget title;
-  // final Widget icon;
   final Widget subtitle;
-  // final Widget trailing;
   final EdgeInsets margin;
   final bool mini;
   final GestureTapCallback onTap;
@@ -15,9 +13,7 @@ class CustomTile extends StatelessWidget {
   CustomTile({
     required this.leading,
     required this.title,
-    // required this.icon,
     required this.subtitle,
-    // required this.trailing,
     this.margin = const EdgeInsets.all(0),
     required this.onTap,
     required this.onLongPress,
@@ -54,13 +50,11 @@ class CustomTile extends StatelessWidget {
                         SizedBox(height: 5),
                         Row(
                           children: <Widget>[
-                            // icon ?? Container(),
                             subtitle,
                           ],
                         )
                       ],
                     ),
-                    // trailing ?? Container(),
                   ],
                 ),
               ),
