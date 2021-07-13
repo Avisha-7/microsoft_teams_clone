@@ -5,7 +5,6 @@ class colorVariables {
   static final Color blackColor = Color(0xff19191b);
   static final Color greyColor = Color(0xff8f8f8f);
   static final Color backgroundTheme = Color(0xFF886CE4);
-  // Color(0xFF7B83EB);
   static final Color homePageTheme = Color(0xFF886CE4);
   static final Color userCircleBackground = Color(0xff2b2b33);
   static final Color onlineDotColor = Color(0xff46dc64);
@@ -16,9 +15,7 @@ class colorVariables {
   static final Color gradientColorEnd = Color(0xff0184dc);
 
   static final Color senderColor = Color(0xff757575);
-  // Color(0xff2b343b);
   static final Color receiverColor = Color(0xff272c35);
-  // Color(0xff1e2225);
 
   static final Gradient fabGradient = LinearGradient(
       colors: [gradientColorStart, gradientColorEnd],
